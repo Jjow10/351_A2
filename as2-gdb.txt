@@ -1,0 +1,124 @@
+joseph@351-Debian:~/ensc351/work/as2$ gdb-multiarch noworky
+GNU gdb (Debian 13.1-3) 13.1
+Copyright (C) 2023 Free Software Foundation, Inc.
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>
+This is free software: you are free to change and redistribute it.
+There is NO WARRANTY, to the extent permitted by law.
+Type "show copying" and "show warranty" for details.
+This GDB was configured as "x86_64-linux-gnu".
+Type "show configuration" for configuration details.
+For bug reporting instructions, please see:
+<https://www.gnu.org/software/gdb/bugs/>.
+Find the GDB manual and other documentation resources online at:
+    <http://www.gnu.org/software/gdb/documentation/>.
+
+For help, type "help".
+Type "apropos word" to search for commands related to "word"...
+Reading symbols from noworky...
+(gdb) target remote 192.168.7.2:2001
+Remote debugging using 192.168.7.2:2001
+Reading /usr/lib/debug/.build-id/29/e3544de173b82b425c039b05860d5bb254a9bf.debug from remote target...
+warning: File transfers from remote targets can be slow. Use "set sysroot" to access files locally instead.
+0x00010340 in _start ()
+(gdb) b main 
+Breakpoint 1 at 0x10562: file noworky.c, line 53.
+(gdb) c
+Continuing.
+
+Breakpoint 1, main () at noworky.c:53
+53		printf("noworky: by Brian Fraser\n");
+(gdb) b tradeArrays 
+Breakpoint 2 at 0x10482: file noworky.c, line 28.
+(gdb) c
+Continuing.
+
+Breakpoint 2, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:28
+28		for (i = size-1; i >= 0; i--) {
+(gdb) b noworky.c:31
+Breakpoint 3 at 0x104c8: file noworky.c, line 31.
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$1 = 9
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$2 = 8
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) 
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$3 = 1
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$4 = 0
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$5 = 4294967295
+(gdb) c
+Continuing.
+
+Breakpoint 3, tradeArrays (array1=0x6d1b0, array2=0x6d208, size=10) at noworky.c:31
+31			printf("arr1 = %f, arr2 = %f \n", array1[i], array2[i]);
+(gdb) p i
+$6 = 4294967294
+(gdb) del 3
+(gdb) c
+Continuing.
+
+Program received signal SIGSEGV, Segmentation fault.
+0x00035108 in __printf_fp_l ()
+(gdb) c
+Continuing.
+
+Program terminated with signal SIGSEGV, Segmentation fault.
+The program no longer exists.
+(gdb) quit
+joseph@351-Debian:~/ensc351/work/as2$ 
+
