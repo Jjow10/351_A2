@@ -8,7 +8,7 @@
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 #define A2D_VOLTAGE_REF_V 1.8
 #define A2D_MAX_READING 4095
-#define BUFFER_SIZE 1000 // Adjust the size based on your needs
+#define BUFFER_SIZE 2000 // Adjust the size based on your needs
 
 static void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
    
@@ -131,7 +131,7 @@ int main(){
 
     while(true){
         extractAndProcessSamples();
-        sleepForMs(500);
+        sleepForMs(1000);
     
         // int reading = getVoltageReading(2);
         // double voltage = ((double)reading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
