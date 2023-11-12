@@ -137,5 +137,6 @@ void displayDoubleVal(double numToDisplay){
         writeI2cReg(i2cFileDesc, i*2, digitDisplay[decimalDigit][i]);
     }
 
+    //Display Decimal Point
     writeI2cReg(i2cFileDesc, 6, 0x40);
 }
