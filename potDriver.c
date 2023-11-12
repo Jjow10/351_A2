@@ -8,7 +8,10 @@
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 #define A2D_VOLTAGE_REF_V 1.8
 #define A2D_MAX_READING 4095
+#define USER_BUTTON_VALUE_FILE_PATH "/sys/class/gpio/gpio72/value"
 #define BUFFER_SIZE 2000 // Adjust the size based on your needs
+
+static bool isUserButtonPressed();
 
 static void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
    
@@ -115,6 +118,35 @@ void extractAndProcessSamples() {
     pthread_mutex_unlock(&bufferMutex);
 }
 
+static bool isUserButtonPressed() {
+    char buff[BUFFER_SIZE];
+
+    FILE *pbuttonValueFile = fopen(USER_BUTTON_VALUE_FILE_PATH, "r");
+    if (pbuttonValueFile == NULL) {
+        printf("ERROR OPENING %s.", USER_BUTTON_VALUE_FILE_PATH);
+        exit(1);
+    }
+
+    fflush(pbuttonValueFile);
+    fseek(pbuttonValueFile, 0, SEEK_SET);
+    fgets(buff, 1024, pbuttonValueFile);
+    rewind(pbuttonValueFile);
+
+    if (atoi(buff) == 0) {
+        fclose(pbuttonValueFile);
+        return true;
+    } else {
+        fclose(pbuttonValueFile);
+        return false;
+    }
+}
+
+static void clean() {
+    //1. Shutting down all running threads
+    //2. Freeing all dynamically allocated memory
+    //3. Exiting without any runtime errors (such as a segfault or divide by zero)
+    
+}
 
 int main(){
     pthread_t photoresistorThread;
@@ -129,7 +161,7 @@ int main(){
 
 
 
-    while(true){
+    while(!isUserButtonPressed()){
         extractAndProcessSamples();
         sleepForMs(1000);
     
@@ -137,6 +169,9 @@ int main(){
         // double voltage = ((double)reading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
         // printf("Value %5d ==> %5.2fV\n", reading, voltage);
     }
-return 0;
+
+    clean();
+
+    return 0;
 }
 
