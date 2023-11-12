@@ -98,17 +98,20 @@ void* readPhotoresistor(void* arg) {
 
 
 // Function to extract and process samples by the analysis module
-void extractAndProcessSamples() {
-
-    int Readingcount = 0;
+static int extractAndProcessSamples() {
+    int readingCount = 0;
     // Access the buffer in a thread-safe manner
     pthread_mutex_lock(&bufferMutex);
     for (int i = 0; i < bufferIndex; i += 2) {
         int a2dReading = buffer[i];
         long long timestamp = buffer[i + 1];
-        Readingcount++;
+        readingCount++;
         // Process the sample (replace this with your actual processing logic)
-        printf("#%d: A2D Reading = %d, Timestamp = %lld\n", Readingcount, a2dReading, timestamp);
+        printf("#%d: A2D Reading = %d, Timestamp = %lld\n", readingCount, a2dReading, timestamp);
+
+        if(readingCount % 50 == 0 && isUserButtonPressed()) {
+            return 1;
+        }
     }
     pthread_mutex_unlock(&bufferMutex);
 
@@ -116,6 +119,8 @@ void extractAndProcessSamples() {
     pthread_mutex_lock(&bufferMutex);
     bufferIndex = 0;
     pthread_mutex_unlock(&bufferMutex);
+
+    return 0;
 }
 
 static bool isUserButtonPressed() {
@@ -131,21 +136,15 @@ static bool isUserButtonPressed() {
     fseek(pbuttonValueFile, 0, SEEK_SET);
     fgets(buff, 1024, pbuttonValueFile);
     rewind(pbuttonValueFile);
+    fclose(pbuttonValueFile);
 
-    if (atoi(buff) == 0) {
-        fclose(pbuttonValueFile);
-        return true;
-    } else {
-        fclose(pbuttonValueFile);
-        return false;
-    }
+    return atoi(buff) == 0 ? true : false;
 }
 
 static void clean() {
     //1. Shutting down all running threads
     //2. Freeing all dynamically allocated memory
     //3. Exiting without any runtime errors (such as a segfault or divide by zero)
-    
 }
 
 int main(){
@@ -155,16 +154,10 @@ int main(){
         fprintf(stderr, "Error creating thread\n");
         return 1;
     }
-    
- 
 
-
-
-
-    while(!isUserButtonPressed()){
-        extractAndProcessSamples();
+    // While the USER button has not been pressed, keep processing values.
+    while(!extractAndProcessSamples()){
         sleepForMs(1000);
-    
         // int reading = getVoltageReading(2);
         // double voltage = ((double)reading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
         // printf("Value %5d ==> %5.2fV\n", reading, voltage);
