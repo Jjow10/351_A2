@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <unistd.h>
 #include <time.h>
+#include <math.h>
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 #define A2D_VOLTAGE_REF_V 1.8
 #define A2D_MAX_READING 4095
@@ -34,13 +35,37 @@ static void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
     }
 }
 
-static long long getTimeInMs(void){
+static void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
+   
+    const long long US_PER_MS = 1000;
+    const long long US_PER_SECOND = 1000000;
+   
+    long long delayUs = delayInUs * US_PER_MS;
+    int seconds = delayUs / US_PER_SECOND;
+    int microseconds = delayUs % US_PER_SECOND;
+    
+    struct timespec reqDelay = {seconds, microseconds};
+    while (nanosleep(&reqDelay, &reqDelay) == -1) {
+        if (errno == EINTR) { // Sleep was interrupted; continue sleeping with the remaining time.
+            continue;
+        } 
+        else{
+            printf("ERROR: microsleep was interfered.\n");
+            break; // Exit the loop on other errors.
+        }
+    }
+}
+
+static long long getTimeinUs(void){
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
     long long seconds = spec.tv_sec;
     long long nanoSeconds = spec.tv_nsec;
-    long long milliSeconds = 1121999606 + seconds * 1000 + nanoSeconds / 1000000;
-    return milliSeconds;
+    long long microSeconds = (seconds * 1000000  + nanoSeconds / 1000);
+    // double microSeconds_3decimal = (double)microSeconds;
+    // printf( "second = %lld , nanosec = %lld \n", seconds*1000000 , nanoSeconds /1000);
+    // printf( "ms = %lld   ms = %f \n", microSeconds, microSeconds_3decimal);
+    return microSeconds;
 }
 
 
@@ -57,7 +82,7 @@ int getVoltageReading(int node){
     }
 
     // Get reading
-    int a2dReading = 0;
+    int a2dReading  = 0;
     int itemsRead = fscanf(f, "%d", &a2dReading);
 
     if (itemsRead <= 0) {
@@ -71,7 +96,7 @@ int getVoltageReading(int node){
 }
 
 int buffer[BUFFER_SIZE];
-int bufferIndex = 0;
+int bufferIndex  = 0;
 pthread_mutex_t bufferMutex = PTHREAD_MUTEX_INITIALIZER;
 
 // Function to read the photoresistor and store the value in the buffer
@@ -81,7 +106,7 @@ void* readPhotoresistor(void* arg) {
         int a2dReading = getVoltageReading(1);
 
         // Get current timestamp
-        long long timestamp = getTimeInMs();
+        long long timestamp = getTimeinUs();
 
         // Store the reading and timestamp in the buffer
         pthread_mutex_lock(&bufferMutex);
@@ -98,28 +123,130 @@ void* readPhotoresistor(void* arg) {
 
 
 // Function to extract and process samples by the analysis module
-static int extractAndProcessSamples() {
-    int readingCount = 0;
+    double a2d_exp_average  = 0 ,a2d_previous_average  = 0;
+    int total_run = 0; 
+    double a2d_dip_average;
+
+    static int extractAndProcessSamples() {
+    int readingCount = 1; //tracking how many samples are collected each run
+    double a2d_min = 0 , a2d_max  = 0, a2d_average  = 0; //A2D variabls
+    long long time_previous  = 0 , time_current  = 0; //Interval varibales
+    double time_interval = 0 ,time_interval_min = 0, time_interval_max = 0, time_average = 0,time_total = 0;
+    bool dipDetected = false; // Dip variables
+    double dipThreshold = 0.1, hysteresis = 0.03;
+    int dipCount = 0;
+
     // Access the buffer in a thread-safe manner
     pthread_mutex_lock(&bufferMutex);
-    for (int i = 0; i < bufferIndex; i += 2) {
-        int a2dReading = buffer[i];
-        long long timestamp = buffer[i + 1];
-        readingCount++;
-        // Process the sample (replace this with your actual processing logic)
-        printf("#%d: A2D Reading = %d, Timestamp = %lld\n", readingCount, a2dReading, timestamp);
+    for (int i  = 0; i < bufferIndex; i += 2) {
+        double a2dReading = ((double)buffer[i] / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
+        //printf ("a2dReading = %.2f , buffer reading = %d \n",a2dReading,buffer[i]); //test code
+        //long long timestamp = buffer[i + 1]; //For step 2.4 only      
+        a2d_average += a2dReading;
+       
+        
+        //getting time interval
+        time_previous = time_current;
+        time_current = getTimeinUs();
 
+        sleepForUs(50);
+        //printf( "previous = %lld , current = %lld \n", time_previous,time_current);//test code
+        
+        if(readingCount ==2 ){ //First round
+            time_interval = (double)(time_current - time_previous);
+            time_interval /= 100;
+            time_total += time_interval;
+            //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
+        }
+        else if(readingCount > 2 ){ //Fron Second round, start recordinf the Time Interval min/max
+            time_interval = (double)(time_current - time_previous);
+            time_interval /= 100;
+            if(time_interval_min == 0 || time_interval_max == 0){
+                time_interval_min = time_interval;
+                time_interval_max = time_interval;
+            }
+            else if(time_interval < time_interval_min)
+                time_interval_min = time_interval;
+            else if (time_interval > time_interval_max)
+                time_interval_max = time_interval;
+            time_total += time_interval;
+            //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
+        }
+
+
+        // getting min/max voltage
+        if(a2d_min == 0 || a2d_max == 0){ // inital min,max = first voltage value
+            a2d_min = a2dReading;
+            a2d_max = a2dReading;
+        }
+        else{ // Decide if the new voltage is min or max
+            if (a2dReading > a2d_max)
+                a2d_max = a2dReading;
+            else if ( a2dReading < a2d_min)
+                a2d_min = a2dReading;            
+        }
+
+        
+        // Dip detection logic
+        if(readingCount==1)
+            a2d_dip_average = a2dReading;
+        else
+            a2d_dip_average = 0.9*a2d_dip_average + 0.1*a2dReading;
+        double voltageDiff = fabs(a2d_dip_average - a2dReading);
+        //printf ("VoltageDiff = %.2f\n",voltageDiff);
+        //printf ("a2dReading = %.2f, a2d_dip_average = %.2f\n",a2dReading , a2d_dip_average);
+
+        if (!dipDetected && voltageDiff >= dipThreshold) {
+            // Dip detected
+            dipDetected = true;
+            dipCount++;
+        }
+
+        if (dipDetected && voltageDiff <= (dipThreshold - hysteresis)) {
+            // Reset dip detection when voltage goes above the threshold + hysteresis
+            dipDetected = false;
+        }
+
+
+        //Process the sample (check if the Userbutton is pressed every 50 reading counts)
+        readingCount++;
         if(readingCount % 50 == 0 && isUserButtonPressed()) {
             return 1;
         }
     }
+    
+    
+    //Calculations For Step 2.5
+    if(readingCount <= 0){
+        printf("ERROR: ReadingCount is not valid\n");
+        exit(-1);
+    }
+    else{
+    time_average = time_total /  (readingCount);
+    a2d_average /= readingCount; 
+    }
+    
+    if (total_run == 1) //if this is the first run
+        a2d_exp_average = a2d_average;
+    else //expotential averaging, weighting the previous average at 99.9%
+        a2d_exp_average = (0.999*a2d_previous_average) + (0.001 * a2d_average);
+    
+    
+    //2.5 Printout Comment
+    if(total_run >=1)
+    printf("Run #%d  Interval ms (%.3f, %.3f) avg = %.3f   Samples V(%.2f, %.2f) avg = %.2f   #Dips : %d   #Samples : %d \n", total_run,time_interval_min,time_interval_max,time_average,a2d_min,a2d_max,a2d_exp_average,dipCount,readingCount);
+ 
+    
+    // End of the 2.5 module
     pthread_mutex_unlock(&bufferMutex);
 
+    
     // Clear the buffer and restart filling it
     pthread_mutex_lock(&bufferMutex);
-    bufferIndex = 0;
+    bufferIndex  = 0;
     pthread_mutex_unlock(&bufferMutex);
-
+    a2d_previous_average = a2d_average;
+    total_run++;
     return 0;
 }
 
@@ -167,4 +294,3 @@ int main(){
 
     return 0;
 }
-
