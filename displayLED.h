@@ -2,6 +2,16 @@
 //Module to display values on 8x8 LED matrix
 #ifndef DISPLAYLED_H
 #define DISPLAYLED_H
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <sys/ioctl.h>
+#include <linux/i2c.h>
+#include <linux/i2c-dev.h>
+
+#define I2CDRV_LINUX_BUS2 "/dev/i2c-2"
+#define LED_DISPLAY_ADDRESS 0X70
 
 //Initialize i2c bus
 int initI2cBus(char* bus, int address);
