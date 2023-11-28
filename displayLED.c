@@ -1,4 +1,3 @@
-
 #include "displayLED.h"
 
 //Store digit displays

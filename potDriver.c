@@ -6,6 +6,8 @@
 #include <unistd.h>
 #include <time.h>
 #include <math.h>
+#include "joystickState.h"
+
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 #define A2D_VOLTAGE_REF_V 1.8
 #define A2D_MAX_READING 4095
@@ -57,7 +59,7 @@ static void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
 }
 
 static long long getTimeinUs(void){
-    struct timespec spec;
+    struct timespec spec = {};
     clock_gettime(CLOCK_REALTIME, &spec);
     long long seconds = spec.tv_sec;
     long long nanoSeconds = spec.tv_nsec;
@@ -133,6 +135,8 @@ static int extractAndProcessSamples() {
     bool dipDetected = false; // Dip variables
     double dipThreshold = 0.1, hysteresis = 0.03;
     int dipCount = 0;
+
+    printf("Joystick direction: %d\n", getJoystickDirection());
 
     // Access the buffer in a thread-safe manner
     pthread_mutex_lock(&bufferMutex);
