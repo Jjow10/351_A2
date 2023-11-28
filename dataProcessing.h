@@ -12,6 +12,6 @@
 
 // Function to read the photoresistor and store the value in the buffer
 void* readPhotoresistor(void* arg);
-static int extractAndProcessSamples(void); 
+int extractAndProcessSamples(void);
 
 #endif

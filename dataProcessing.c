@@ -22,7 +22,7 @@ void* readPhotoresistor(void* arg) {
     return NULL;
 }
 
-static int extractAndProcessSamples() {
+int extractAndProcessSamples() {
     double a2d_exp_average = 0 ,a2d_previous_average = 0;
     int total_run = 0; 
     double a2d_dip_average;

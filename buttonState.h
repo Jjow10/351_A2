@@ -10,6 +10,6 @@
 
 #define USER_BUTTON_VALUE_FILE_PATH "/sys/class/gpio/gpio72/value"
 
-static bool isUserButtonPressed(void);
+bool isUserButtonPressed(void);
 
 #endif
