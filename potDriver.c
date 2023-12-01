@@ -7,6 +7,7 @@
 #include <time.h>
 #include <math.h>
 #include "joystickState.h"
+#include "displayLED.h"
 
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 #define A2D_VOLTAGE_REF_V 1.8
@@ -127,6 +128,7 @@ void* readPhotoresistor(void* arg) {
 double a2d_exp_average  = 0, a2d_previous_average  = 0;
 int total_run = 0; 
 double a2d_dip_average;
+double prevDipCount = 0;
 
 static int extractAndProcessSamples() {
     int readingCount = 0; //tracking how many samples are collected each run
@@ -136,6 +138,33 @@ static int extractAndProcessSamples() {
     double dipThreshold = 0.1, hysteresis = 0.03;
     int dipCount = 0;
 
+    int joystickDirection = getJoystickDirection();
+
+    // Center (default behaviour)
+    // Display integer number of dips on LED
+    if (joystickDirection == 0) {
+        displayIntVal(prevDipCount);
+    }
+    // Up
+    // Display floating point maximum sample voltage (V)
+    else if (joystickDirection == 1) {
+
+    }
+    // Down
+    // Display floating point minimum sample voltage (V)
+    else if (joystickDirection == 2) {
+
+    }
+    // Left
+    // Display floating point minimum interval between samples (ms)
+    else if (joystickDirection == 3) {
+
+    }
+    // Right
+    // Display floating point maximum interval between samples (ms)
+    else if (joystickDirection == 4) {
+
+    }
     printf("Joystick direction: %d\n", getJoystickDirection());
 
     // Access the buffer in a thread-safe manner
@@ -228,6 +257,7 @@ static int extractAndProcessSamples() {
     } //expotential averaging, weighting the previous average at 99.9%    
     
     //2.5 Printout Comment
+    prevDipCount = dipCount;
     if (total_run >= 1)
     printf("Run #%d  Interval ms (%.3f, %.3f) avg = %.3f   Samples V(%.2f, %.2f) avg = %.2f   #Dips : %d   #Samples : %d \n", total_run,time_interval_min,time_interval_max,time_average,a2d_min,a2d_max,a2d_exp_average,dipCount,readingCount);
     
