@@ -1,4 +1,6 @@
 // buffer_module.c
+#include "buffer.h"
+
 #define BUFFER_SIZE 2000
 
 int buffer[BUFFER_SIZE];
