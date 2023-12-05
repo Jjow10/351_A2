@@ -61,7 +61,8 @@ static void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
 
 static long long getTimeinUs(void){
     struct timespec spec = {};
-    clock_gettime(CLOCK_REALTIME, &spec);
+    int clock_time = CLOCK_REALTIME;
+    clock_gettime(clock_time, &spec);
     long long seconds = spec.tv_sec;
     long long nanoSeconds = spec.tv_nsec;
     long long microSeconds = (seconds*1000000 + nanoSeconds*0.001);
@@ -128,7 +129,11 @@ void* readPhotoresistor(void* arg) {
 double a2d_exp_average  = 0, a2d_previous_average  = 0;
 int total_run = 0; 
 double a2d_dip_average;
-double prevDipCount = 0;
+int prevDipCount = 0;
+double prevA2d_min = 0;
+double prevA2d_max = 0;
+double prevTime_interval_min = 0;
+double prevTime_interval_max = 0;
 
 static int extractAndProcessSamples() {
     int readingCount = 0; //tracking how many samples are collected each run
@@ -139,7 +144,7 @@ static int extractAndProcessSamples() {
     int dipCount = 0;
 
     int joystickDirection = getJoystickDirection();
-
+    initDisplay();
     // Center (default behaviour)
     // Display integer number of dips on LED
     if (joystickDirection == 0) {
@@ -148,24 +153,24 @@ static int extractAndProcessSamples() {
     // Up
     // Display floating point maximum sample voltage (V)
     else if (joystickDirection == 1) {
-
+        displayDoubleVal(prevA2d_max);
     }
     // Down
     // Display floating point minimum sample voltage (V)
     else if (joystickDirection == 2) {
-
+        displayDoubleVal(prevA2d_min);
     }
     // Left
     // Display floating point minimum interval between samples (ms)
     else if (joystickDirection == 3) {
-
+        displayDoubleVal(prevTime_interval_min);
     }
     // Right
     // Display floating point maximum interval between samples (ms)
     else if (joystickDirection == 4) {
+        displayDoubleVal(prevTime_interval_max);
 
     }
-    printf("Joystick direction: %d\n", getJoystickDirection());
 
     // Access the buffer in a thread-safe manner
     pthread_mutex_lock(&bufferMutex);
@@ -177,28 +182,27 @@ static int extractAndProcessSamples() {
 
         sleepForUs(50);
         //printf( "previous = %lld , current = %lld \n", time_previous,time_current);//test code
-        
-        if (readingCount == 0 && buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) { //First round
+        if (buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) {
             time_interval = (double)(buffer[i+3] - buffer[i+1]);
             time_interval *= 0.001;
-            time_total += time_interval;
-            //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
-        }
-        else if (readingCount >= 1 && buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) { //From Second round, start recording the Time Interval min/max
-            time_interval = (double)(buffer[i+3] - buffer[i+1]);
-            time_interval *= 0.001;
-            if (time_interval_min == 0 && time_interval_max == 0){
-                time_interval_min = time_interval;
-                time_interval_max = time_interval;
+            if (readingCount == 0) { //First round
+                time_total += time_interval;
+                //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
+            } 
+            else if (readingCount >= 1) { //From Second round, start recording the Time Interval min/max
+                if (time_interval_min == 0 && time_interval_max == 0){
+                    time_interval_min = time_interval;
+                    time_interval_max = time_interval;
+                }
+                else if (time_interval < time_interval_min) {
+                    time_interval_min = time_interval;
+                }
+                else if (time_interval > time_interval_max) {
+                    time_interval_max = time_interval;
+                }
+                time_total += time_interval;
+                //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
             }
-            else if (time_interval < time_interval_min) {
-                time_interval_min = time_interval;
-            }
-            else if (time_interval > time_interval_max) {
-                time_interval_max = time_interval;
-            }
-            time_total += time_interval;
-            //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
         }
 
         // getting min/max voltage
@@ -257,7 +261,6 @@ static int extractAndProcessSamples() {
     } //expotential averaging, weighting the previous average at 99.9%    
     
     //2.5 Printout Comment
-    prevDipCount = dipCount;
     if (total_run >= 1)
     printf("Run #%d  Interval ms (%.3f, %.3f) avg = %.3f   Samples V(%.2f, %.2f) avg = %.2f   #Dips : %d   #Samples : %d \n", total_run,time_interval_min,time_interval_max,time_average,a2d_min,a2d_max,a2d_exp_average,dipCount,readingCount);
     
@@ -266,8 +269,19 @@ static int extractAndProcessSamples() {
 
     // Clear the buffer and restart filling it
     pthread_mutex_lock(&bufferMutex);
-    bufferIndex  = 0;
+        bufferIndex  = 0;
+        prevDipCount = dipCount;
+        prevA2d_max = a2d_max;
+        printf("%f", a2d_max);
+        prevA2d_min = a2d_min;
+        prevTime_interval_min = time_interval_min;
+        prevTime_interval_max = time_interval_max;
     pthread_mutex_unlock(&bufferMutex);
+    prevDipCount = dipCount;
+    prevA2d_max = a2d_max;
+    prevA2d_min = a2d_min;
+    prevTime_interval_min = time_interval_min;
+    prevTime_interval_max = time_interval_max;
     a2d_previous_average = a2d_average;
     total_run++;
     return 0;

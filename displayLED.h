@@ -10,7 +10,7 @@
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
 
-#define I2CDRV_LINUX_BUS2 "/dev/i2c-2"
+#define I2CDRV_LINUX_BUS2 "/dev/i2c-1"
 #define LED_DISPLAY_ADDRESS 0X70
 
 //Initialize i2c bus
