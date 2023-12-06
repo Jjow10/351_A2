@@ -1,9 +1,17 @@
+#include <stdlib.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <pthread.h>
+#include <errno.h>
 #include <unistd.h>
-#include "displayLED.h"
-#include "dataProcessing.h"
+#include <time.h>
+#include <math.h>
 #include "cleanup.h"
+#include "dataProcessing.h"
+#include "photoresistorState.h"
 
-int main(){
+
+int main(void){
     pthread_t photoresistorThread;
     // Create a thread to read the photoresistor
     if (pthread_create(&photoresistorThread, NULL, readPhotoresistor, NULL) != 0) {

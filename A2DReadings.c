@@ -1,5 +1,8 @@
 #include "A2DReadings.h"
 
+#define A2D_VOLTAGE_REF_V 1.8
+#define A2D_MAX_READING 4095
+
 int getVoltageReading(int node){
     // Open file
     char A2D_to_open[50];
@@ -25,3 +28,4 @@ int getVoltageReading(int node){
     fclose(f);
     return a2dReading;
 }
+

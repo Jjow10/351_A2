@@ -1,5 +1,5 @@
 //dataProcessing.h
-
+// Header file for dataProcessing.c providing function to extract and process samples by the analysis module
 #ifndef DATA_PROCESSING_H
 #define DATA_PROCESSING_H
 
@@ -8,10 +8,10 @@
 #include "timeFunctions.h"
 #include "A2DReadings.h"
 #include "buttonState.h"
-#include "buffer.h"
+#include "displayLED.h"
+#include "joystickState.h"
 
-// Function to read the photoresistor and store the value in the buffer
-void* readPhotoresistor(void* arg);
-int extractAndProcessSamples(void);
+//Function to extract and process samples by the analysis module
+int extractAndProcessSamples(void); 
 
 #endif
