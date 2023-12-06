@@ -3,6 +3,7 @@
 #ifndef A2D_READINGS_H
 #define A2D_READINGS_H
 #include <stdio.h>
+#include <stdlib.h>
 
 #define A2D_FILE_VOLTAGE "/sys/bus/iio/devices/iio:device0/in_voltage"
 
