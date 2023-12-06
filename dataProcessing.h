@@ -10,7 +10,6 @@
 #include "buttonState.h"
 #include "displayLED.h"
 #include "joystickState.h"
-#include "photoresistorState.h"
 
 //Function to extract and process samples by the analysis module
 int extractAndProcessSamples(void); 
