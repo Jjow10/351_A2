@@ -7,6 +7,8 @@
 #include <stdio.h>
 #define USER_BUTTON_VALUE_FILE_PATH "/sys/class/gpio/gpio72/value"
 
+#define BUFFER_SIZE 2000 // Adjust the size based on your needs
+
 bool isUserButtonPressed();
 
 #endif
