@@ -8,7 +8,6 @@
 #include <math.h>
 #include "cleanup.h"
 #include "dataProcessing.h"
-#include "photoresistorState.h"
 
 
 int main(void){
