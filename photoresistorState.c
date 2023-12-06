@@ -1,11 +1,5 @@
 #include "photoresistorState.h"
 
-#define BUFFER_SIZE 2000 // Adjust the size based on your needs
-
-int buffer[BUFFER_SIZE];
-int bufferIndex  = 0;
-pthread_mutex_t bufferMutex = PTHREAD_MUTEX_INITIALIZER;
-
 void* readPhotoresistor(void* arg) {
     while (1) {
         // Read A2D
