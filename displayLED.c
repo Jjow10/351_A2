@@ -45,6 +45,10 @@ void initDisplay(){
     writeI2cReg(i2cFileDesc, 0x21, 0x00);
     //Set display to ON
     writeI2cReg(i2cFileDesc, 0x81, 0x00);
+
+    for(int i = 0; i < 8; ++i){
+        writeI2cReg(i2cFileDesc, i*2, 0x00);
+    }
 }
 
 //Display inputted integer on 8x8 LED Matrix
@@ -82,9 +86,11 @@ void displayIntVal(int numToDisplay){
     }
 
     //Display ones digit
-    for(int i = 0; i < 4; ++i){
+    for(int i = 0; i < 3; ++i){
         writeI2cReg(i2cFileDesc, i*2, digitDisplay[onesDigit][i]);
     }
+    writeI2cReg(i2cFileDesc, 6, 0x00);
+    writeI2cReg(i2cFileDesc, 14, 0x00);
 }
 
 //Display inputted Double on 8x8 LED Matrix
@@ -128,4 +134,5 @@ void displayDoubleVal(double numToDisplay){
 
     //Display Decimal Point
     writeI2cReg(i2cFileDesc, 6, 0x40);
+    writeI2cReg(i2cFileDesc, 14, 0x00);
 }
