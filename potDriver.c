@@ -269,13 +269,7 @@ static int extractAndProcessSamples() {
 
     // Clear the buffer and restart filling it
     pthread_mutex_lock(&bufferMutex);
-        bufferIndex  = 0;
-        prevDipCount = dipCount;
-        prevA2d_max = a2d_max;
-        printf("%f", a2d_max);
-        prevA2d_min = a2d_min;
-        prevTime_interval_min = time_interval_min;
-        prevTime_interval_max = time_interval_max;
+    bufferIndex  = 0;
     pthread_mutex_unlock(&bufferMutex);
     prevDipCount = dipCount;
     prevA2d_max = a2d_max;
