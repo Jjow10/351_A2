@@ -10,7 +10,7 @@
 
 #define BUFFER_SIZE 2000 // Adjust the size based on your needs
 
-int buffer[BUFFER_SIZE];
+long long buffer[BUFFER_SIZE];
 int bufferIndex  = 0;
 pthread_mutex_t bufferMutex = PTHREAD_MUTEX_INITIALIZER;
 
@@ -89,7 +89,7 @@ static int extractAndProcessSamples() {
         a2d_average += a2dReading;
 
         sleepForUs(50);
-        if (buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) {
+        if ((buffer[i+3] > buffer[i+1]) && (buffer[i+3] > 0)) {
             time_interval = (double)(buffer[i+3] - buffer[i+1]);
             time_interval *= 0.001;
             if (readingCount == 0) { //First round
