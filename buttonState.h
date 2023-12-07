@@ -1,13 +1,13 @@
 //buttonState.h
-//Header file for buttonState.c for reading button value
+//Module to read input of button
 #ifndef BUTTON_STATE_H
 #define BUTTON_STATE_H
 #include <stdlib.h>
 #include <stdbool.h>
 #include <stdio.h>
-#define USER_BUTTON_VALUE_FILE_PATH "/sys/class/gpio/gpio72/value"
 
-#define BUFFER_SIZE 2000 // Adjust the size based on your needs
+#define USER_BUTTON_VALUE_FILE_PATH "/sys/class/gpio/gpio72/value"
+#define BUFFER_SIZE 2000
 
 bool isUserButtonPressed();
 
