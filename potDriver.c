@@ -84,19 +84,15 @@ static int extractAndProcessSamples() {
     // Access the buffer in a thread-safe manner
     pthread_mutex_lock(&bufferMutex);
     for (int i  = 0; i < bufferIndex; i += 2) {
-        double a2dReading = ((double)buffer[i] / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
-        //printf ("a2dReading = %.2f , buffer reading = %d \n",a2dReading,buffer[i]); //test code
-        //long long timestamp = buffer[i + 1]; //For step 2.4 only      
+        double a2dReading = ((double)buffer[i] / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;    
         a2d_average += a2dReading;
 
         sleepForUs(50);
-        //printf( "previous = %lld , current = %lld \n", time_previous,time_current);//test code
         if (buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) {
             time_interval = (double)(buffer[i+3] - buffer[i+1]);
             time_interval *= 0.001;
             if (readingCount == 0) { //First round
                 time_total += time_interval;
-                //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
             } 
             else if (readingCount >= 1) { //From Second round, start recording the Time Interval min/max
                 if (time_interval_min == 0 && time_interval_max == 0){
@@ -110,7 +106,6 @@ static int extractAndProcessSamples() {
                     time_interval_max = time_interval;
                 }
                 time_total += time_interval;
-                //printf ("timemin : %.3f   timemax : %.3f   timediff : %.3f   timetotal : %.3f \n",time_interval_min, time_interval_max , time_interval, time_total);//test code
             }
         }
 
@@ -136,8 +131,6 @@ static int extractAndProcessSamples() {
             a2d_dip_average = 0.9*a2d_dip_average + 0.1*a2dReading;
         }
         double voltageDiff = fabs(a2d_dip_average - a2dReading);
-        //printf ("VoltageDiff = %.2f\n",voltageDiff);
-        //printf ("a2dReading = %.2f, a2d_dip_average = %.2f\n",a2dReading , a2d_dip_average);
 
         if (!dipDetected && voltageDiff >= dipThreshold) {
             // Dip detected
@@ -152,7 +145,6 @@ static int extractAndProcessSamples() {
 
         //Process the sample (check if the Userbutton is pressed every 50 reading counts)
         readingCount++;
-        //printf("%d",readingCount);
         if(readingCount % 50 == 0 && isUserButtonPressed()) {
             return 1;
         }
@@ -209,9 +201,6 @@ int main(){
     // While the USER button has not been pressed, keep processing values.
     while(!extractAndProcessSamples()){
         sleepForMs(1000);
-        // int reading = getVoltageReading(2);
-        // double voltage = ((double)reading / A2D_MAX_READING) * A2D_VOLTAGE_REF_V;
-        // printf("Value %5d ==> %5.2fV\n", reading, voltage);
     }
 
     clean(photoresistorThread);
