@@ -5,7 +5,8 @@ noworky:
 	cp noworky $(FOLDER_PATH)
 
 potDriver:
-	arm-linux-gnueabihf-gcc -Wall -g -std=c99 -D _POSIX_C_SOURCE=200809L -Werror -pthread potDriver.c joystickState.c displayLED.c -static -o potDriver 
+	arm-linux-gnueabihf-gcc -Wall -g -std=c99 -D _POSIX_C_SOURCE=200809L -Werror -pthread potDriver.c joystickState.c displayLED.c A2DReadings.c buttonState.c timeFunctions.c -static -o potDriver 
+
 	cp potDriver $(FOLDER_PATH)
 
 clean:

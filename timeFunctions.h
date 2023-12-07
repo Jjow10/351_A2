@@ -6,10 +6,10 @@
 #include <errno.h>
 #include <time.h>
 
-static void sleepForMs(long long delayInMs);
+void sleepForMs(long long delayInMs);
 
-static void sleepForUs(long long delayInUs);
+void sleepForUs(long long delayInUs);
 
-static long long getTimeinUs(void);
+long long getTimeinUs(void);
 
 #endif

@@ -1,6 +1,6 @@
 #include "buttonState.h"
 
-static bool isUserButtonPressed() {
+bool isUserButtonPressed() {
     char buff[BUFFER_SIZE];
 
     FILE *pbuttonValueFile = fopen(USER_BUTTON_VALUE_FILE_PATH, "r");

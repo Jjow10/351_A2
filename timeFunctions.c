@@ -1,6 +1,6 @@
 #include "timeFunctions.h"
 
-static void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
+void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
    
     const long long NS_PER_MS = 1000 * 1000;
     const long long NS_PER_SECOND = 1000000000;
@@ -21,7 +21,7 @@ static void sleepForMs(long long delayInMs){ //Timesleep for 1ms for the delays.
     }
 }
 
-static void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
+void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
    
     const long long US_PER_MS = 1000;
     const long long US_PER_SECOND = 1000000;
@@ -42,7 +42,7 @@ static void sleepForUs(long long delayInUs){ //Timesleep for 1ms for the delays.
     }
 }
 
-static long long getTimeinUs(void){
+long long getTimeinUs(void){
     struct timespec spec;
     clock_gettime(CLOCK_REALTIME, &spec);
     long long seconds = spec.tv_sec;
