@@ -35,16 +35,17 @@ void* readPhotoresistor(void* arg) {
     return NULL;
 }
 
+double a2d_exp_average  = 0, a2d_previous_average  = 0;
+int total_run = 0; 
+double a2d_dip_average;
+int prevDipCount = 0;
+double prevA2d_min = 0;
+double prevA2d_max = 0;
+double prevTime_interval_min = 0;
+double prevTime_interval_max = 0;
+
 static int extractAndProcessSamples() {
     // Function to extract and process samples by the analysis module
-    double a2d_exp_average  = 0, a2d_previous_average  = 0;
-    int total_run = 0; 
-    double a2d_dip_average;
-    int prevDipCount = 0;
-    double prevA2d_min = 0;
-    double prevA2d_max = 0;
-    double prevTime_interval_min = 0;
-    double prevTime_interval_max = 0;
     int readingCount = 0; //tracking how many samples are collected each run
     double a2d_min = 0 , a2d_max  = 0, a2d_average  = 0; //A2D variabls
     double time_interval = 0 ,time_interval_min = 0, time_interval_max = 0, time_average = 0,time_total = 0;
@@ -78,7 +79,6 @@ static int extractAndProcessSamples() {
     // Display floating point maximum interval between samples (ms)
     else if (joystickDirection == 4) {
         displayDoubleVal(prevTime_interval_max);
-
     }
 
     // Access the buffer in a thread-safe manner
@@ -92,6 +92,7 @@ static int extractAndProcessSamples() {
         sleepForUs(50);
         //printf( "previous = %lld , current = %lld \n", time_previous,time_current);//test code
         if (buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) {
+            printf("check\n");
             time_interval = (double)(buffer[i+3] - buffer[i+1]);
             time_interval *= 0.001;
             if (readingCount == 0) { //First round
@@ -154,6 +155,7 @@ static int extractAndProcessSamples() {
         readingCount++;
         //printf("%d",readingCount);
         if(readingCount % 50 == 0 && isUserButtonPressed()) {
+            printf("Check\n");
             return 1;
         }
     }
@@ -172,7 +174,7 @@ static int extractAndProcessSamples() {
     //2.5 Printout Comment
     if (total_run >= 1)
     printf("Run #%d  Interval ms (%.3f, %.3f) avg = %.3f   Samples V(%.2f, %.2f) avg = %.2f   #Dips : %d   #Samples : %d \n", total_run,time_interval_min,time_interval_max,time_average,a2d_min,a2d_max,a2d_exp_average,dipCount,readingCount);
-    
+
     // End of the 2.5 module
     pthread_mutex_unlock(&bufferMutex);
 
@@ -190,13 +192,12 @@ static int extractAndProcessSamples() {
     return 0;
 }
 
-static void clean() {
+static void clean(pthread_t thread) {
     //1. Shutting down all running threads
     //2. Freeing all dynamically allocated memory
     //3. Exiting without any runtime errors (such as a segfault or divide by zero)
-    pthread_join(photoresistorThread, NULL);
 
-    pthread_cancel(photoresistorThread);
+    pthread_cancel(thread);
 }
 
 int main(){
@@ -215,7 +216,7 @@ int main(){
         // printf("Value %5d ==> %5.2fV\n", reading, voltage);
     }
 
-    clean();
+    clean(photoresistorThread);
 
     return 0;
 }
