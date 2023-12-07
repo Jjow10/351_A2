@@ -14,6 +14,23 @@ long long buffer[BUFFER_SIZE];
 int bufferIndex  = 0;
 pthread_mutex_t bufferMutex = PTHREAD_MUTEX_INITIALIZER;
 
+//run linux terminal commands
+void runCommand(char* command){
+    FILE *pipe = popen(command, "w");
+    char buffer[1024];
+    while(!feof(pipe) && !ferror(pipe)){
+        if(fgets(buffer, sizeof(buffer), pipe) == NULL){
+            break;
+        }   
+    }
+    int exitCode = WEXITSTATUS(pclose(pipe));
+    if(exitCode != 0){
+        perror("Unable to execute command:");
+        printf(" command: %s\n", command);
+        printf(" exit code: %d\n", exitCode);
+    }
+}
+
 // Function to read the photoresistor and store the value in the buffer
 void* readPhotoresistor(void* arg) {
     while (1) {
@@ -192,6 +209,10 @@ static void clean(pthread_t thread) {
 }
 
 int main(){
+    runCommand("config-pin p8.43 gpio");
+    runCommand("config-pin P9_18 i2c");
+    runCommand("config-pin P9_17 i2c");
+
     pthread_t photoresistorThread;
     // Create a thread to read the photoresistor
     if (pthread_create(&photoresistorThread, NULL, readPhotoresistor, NULL) != 0) {
