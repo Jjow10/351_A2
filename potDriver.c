@@ -92,7 +92,6 @@ static int extractAndProcessSamples() {
         sleepForUs(50);
         //printf( "previous = %lld , current = %lld \n", time_previous,time_current);//test code
         if (buffer[i+3] > buffer[i+1] && buffer[i+3] > 0) {
-            printf("check\n");
             time_interval = (double)(buffer[i+3] - buffer[i+1]);
             time_interval *= 0.001;
             if (readingCount == 0) { //First round
@@ -155,7 +154,6 @@ static int extractAndProcessSamples() {
         readingCount++;
         //printf("%d",readingCount);
         if(readingCount % 50 == 0 && isUserButtonPressed()) {
-            printf("Check\n");
             return 1;
         }
     }
